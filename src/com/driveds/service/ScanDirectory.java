@@ -1,33 +1,48 @@
 package com.driveds.service;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import com.driveds.controllers.ControllerDirectory;
+import com.driveds.controllers.ControladorDiretorio;
 import com.driveds.exceptions.InvalidDirectoryException;
+import com.driveds.model.Arquivo;
 import com.driveds.util.Constants;
 
 public class ScanDirectory implements Runnable {
 
-	public ScanDirectory() {
-		
+	public static String user;
+	
+	public ScanDirectory(String login) {
+		user = login;
 	}
 	
 	@Override
 	public void run() {
 		
 		while (true) {
-			
 			try {
-				ControllerDirectory.initScan();
+				List<Arquivo> filesAddEdits = ControladorDiretorio.atualizarArquivoAdicionadosEditados();
+				//houve mudanÁa no diretÛrio do usu·rio
+				if (filesAddEdits.size() > 0) {
+					ControladorDiretorio.enviarArquivos(filesAddEdits);
+				}
+				
+				ArrayList<Arquivo> arquivosRemovidos = ControladorDiretorio.verificarArquivosRemovidos();
+				if (arquivosRemovidos.size() > 0) {
+					ControladorDiretorio.removerArquivosNuvem(arquivosRemovidos);
+				}
 			} catch (InvalidDirectoryException e) {
-				System.out.println("Erro ao verificar diret√≥rio");
 				e.printStackTrace();
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
-			
 			sleep();
 		}
+	
 	}
 	
 	private void sleep() {
